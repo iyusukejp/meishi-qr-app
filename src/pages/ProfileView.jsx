@@ -80,7 +80,11 @@ export default function ProfileView() {
 
       <div className="view-container">
         <div className="view-avatar-wrap">
-          <div className="view-avatar">{initials}</div>
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={profile.name} className="view-avatar view-avatar-img" />
+          ) : (
+            <div className="view-avatar">{initials}</div>
+          )}
           <div className="view-avatar-ring" />
         </div>
 
