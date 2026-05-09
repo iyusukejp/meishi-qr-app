@@ -12,13 +12,9 @@ export default function QRCodePage() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) {
-      navigate('/')
-      return
-    }
+    if (!stored) { navigate('/'); return }
     const data = JSON.parse(stored)
     setProfile(data)
-
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))))
     const url = `${window.location.origin}${window.location.pathname}#/profile/${encoded}`
     setProfileUrl(url)
@@ -27,110 +23,47 @@ export default function QRCodePage() {
   function handleDownload() {
     const canvas = qrRef.current?.querySelector('canvas')
     if (!canvas) return
-    const url = canvas.toDataURL('image/png')
     const a = document.createElement('a')
-    a.href = url
-    a.download = 'meishi-qr.png'
+    a.href = canvas.toDataURL('image/png')
+    a.download = 'mysns-qr.png'
     a.click()
   }
 
   if (!profile) return null
 
   return (
-    <div className="page">
-      <div className="container container-narrow">
-        <header className="page-header">
-          <h1 className="app-title">QRコード</h1>
-          <p className="app-subtitle">{profile.name} さんの名刺QRコード</p>
-        </header>
+    <div className="qr-page">
+      <div className="qr-container">
+        <button className="back-btn" onClick={() => navigate('/')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          編集に戻る
+        </button>
+
+        <div className="qr-hero">
+          <div className="qr-logo-small">MySNS</div>
+          <h1 className="qr-name">{profile.name}</h1>
+          <p className="qr-desc">QRコードをスキャンしてプロフィールを表示</p>
+        </div>
 
         <div className="qr-card">
-          <div className="qr-wrapper" ref={qrRef}>
+          <div className="qr-glow" />
+          <div className="qr-inner" ref={qrRef}>
             <QRCodeCanvas
               value={profileUrl}
-              size={220}
+              size={200}
               level="M"
-              includeMargin={true}
-              bgColor="#ffffff"
-              fgColor="#1a1a2e"
+              includeMargin={false}
+              bgColor="transparent"
+              fgColor="#0f0f0f"
             />
-          </div>
-          <p className="qr-hint">スキャンするとプロフィールが表示されます</p>
-
-          <div className="qr-actions">
-            <button className="btn btn-primary" onClick={handleDownload}>
-              画像をダウンロード
-            </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/')}>
-              プロフィールを編集
-            </button>
           </div>
         </div>
 
-        <div className="preview-card">
-          <h2 className="section-title">プロフィール確認</h2>
-          <dl className="preview-list">
-            {profile.name && (
-              <div className="preview-item">
-                <dt>氏名</dt>
-                <dd>{profile.name}{profile.nameKana && <span className="kana"> ({profile.nameKana})</span>}</dd>
-              </div>
-            )}
-            {profile.title && (
-              <div className="preview-item">
-                <dt>役職</dt>
-                <dd>{profile.title}</dd>
-              </div>
-            )}
-            {profile.company && (
-              <div className="preview-item">
-                <dt>会社</dt>
-                <dd>{profile.company}</dd>
-              </div>
-            )}
-            {profile.phone && (
-              <div className="preview-item">
-                <dt>電話</dt>
-                <dd>{profile.phone}</dd>
-              </div>
-            )}
-            {profile.email && (
-              <div className="preview-item">
-                <dt>メール</dt>
-                <dd>{profile.email}</dd>
-              </div>
-            )}
-            {profile.website && (
-              <div className="preview-item">
-                <dt>Web</dt>
-                <dd>{profile.website}</dd>
-              </div>
-            )}
-            {profile.x && (
-              <div className="preview-item">
-                <dt>X</dt>
-                <dd>@{profile.x}</dd>
-              </div>
-            )}
-            {profile.instagram && (
-              <div className="preview-item">
-                <dt>Instagram</dt>
-                <dd>@{profile.instagram}</dd>
-              </div>
-            )}
-            {profile.facebook && (
-              <div className="preview-item">
-                <dt>Facebook</dt>
-                <dd>{profile.facebook}</dd>
-              </div>
-            )}
-            {profile.linkedin && (
-              <div className="preview-item">
-                <dt>LinkedIn</dt>
-                <dd>{profile.linkedin}</dd>
-              </div>
-            )}
-          </dl>
+        <div className="qr-actions">
+          <button className="btn-dl" onClick={handleDownload}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            画像をダウンロード
+          </button>
         </div>
       </div>
     </div>
