@@ -31,14 +31,11 @@ export default function ProfileEditor() {
 
     supabase
       .from('mysns_profiles')
-      .select('*')
+      .select('name,phone,email,website,x,instagram,facebook,line,avatar_url')
       .eq('id', profileId)
       .single()
       .then(({ data, error }) => {
-        if (data && !error) {
-          const { id, created_at, updated_at, ...fields } = data
-          setProfile({ ...emptyProfile, ...fields })
-        }
+        if (data && !error) setProfile({ ...emptyProfile, ...data })
         setLoading(false)
       })
   }, [])
@@ -59,8 +56,8 @@ export default function ProfileEditor() {
       alert('画像は5MB以下にしてください')
       return
     }
+    setAvatarPreview(prev => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file) })
     setAvatarFile(file)
-    setAvatarPreview(URL.createObjectURL(file))
     setStatus('idle')
   }
 

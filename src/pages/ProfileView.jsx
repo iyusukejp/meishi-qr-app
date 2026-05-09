@@ -38,7 +38,7 @@ export default function ProfileView() {
   useEffect(() => {
     supabase
       .from('mysns_profiles')
-      .select('*')
+      .select('name,phone,email,website,x,instagram,facebook,line,avatar_url')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
@@ -68,16 +68,6 @@ export default function ProfileView() {
 
   return (
     <div className="view-page">
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f09433"/>
-            <stop offset="50%" stopColor="#dc2743"/>
-            <stop offset="100%" stopColor="#bc1888"/>
-          </linearGradient>
-        </defs>
-      </svg>
-
       <div className="view-container">
         <div className="view-avatar-wrap">
           {profile.avatar_url ? (
@@ -146,3 +136,4 @@ export default function ProfileView() {
     </div>
   )
 }
+

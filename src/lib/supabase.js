@@ -1,4 +1,4 @@
-const URL = import.meta.env.VITE_SUPABASE_URL
+const BASE = import.meta.env.VITE_SUPABASE_URL
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 const h = {
@@ -15,7 +15,7 @@ async function req(url, options = {}) {
 
 export const supabase = {
   from(table) {
-    const base = `${URL}/rest/v1/${table}`
+    const base = `${BASE}/rest/v1/${table}`
     return {
       select(cols = '*') {
         let url = `${base}?select=${cols}`
@@ -50,7 +50,7 @@ export const supabase = {
     from(bucket) {
       return {
         async upload(path, file, opts = {}) {
-          const res = await fetch(`${URL}/storage/v1/object/${bucket}/${path}`, {
+          const res = await fetch(`${BASE}/storage/v1/object/${bucket}/${path}`, {
             method: 'PUT',
             headers: {
               apikey: KEY,
@@ -63,7 +63,7 @@ export const supabase = {
           return res.ok ? { error: null } : { error: await res.json() }
         },
         getPublicUrl(path) {
-          return { data: { publicUrl: `${URL}/storage/v1/object/public/${bucket}/${path}` } }
+          return { data: { publicUrl: `${BASE}/storage/v1/object/public/${bucket}/${path}` } }
         },
       }
     },
