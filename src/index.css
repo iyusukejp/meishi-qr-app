@@ -162,10 +162,10 @@ body {
 
 .sns-badge svg { width: 16px; height: 16px; }
 
-.x-badge   { background: #000; }
-.ig-badge  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
-.fb-badge  { background: #1877f2; }
-.line-badge { background: #06c755; }
+.x-badge, .ig-badge, .fb-badge, .line-badge {
+  background: var(--gray-200);
+  color: var(--gray-500);
+}
 
 .sns-input { flex: 1; }
 
