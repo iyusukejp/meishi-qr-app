@@ -58,15 +58,14 @@ export default function ProfileEditor() {
       if (error) { setStatus('error'); return null }
       return profileId
     } else {
-      // 新規INSERT
-      const { data, error } = await supabase
+      // クライアントサイドでUUIDを生成して新規INSERT
+      const newId = crypto.randomUUID()
+      const { error } = await supabase
         .from('mysns_profiles')
-        .insert(profile)
-        .select('id')
-        .single()
-      if (error || !data) { setStatus('error'); return null }
-      localStorage.setItem(PROFILE_ID_KEY, data.id)
-      return data.id
+        .insert({ ...profile, id: newId })
+      if (error) { setStatus('error'); return null }
+      localStorage.setItem(PROFILE_ID_KEY, newId)
+      return newId
     }
   }
 
