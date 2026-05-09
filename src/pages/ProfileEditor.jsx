@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -13,15 +13,18 @@ const emptyProfile = {
   instagram: '',
   facebook: '',
   line: '',
+  avatar_url: '',
 }
 
 export default function ProfileEditor() {
   const [profile, setProfile] = useState(emptyProfile)
-  const [status, setStatus] = useState('idle') // idle | saving | saved | error
+  const [status, setStatus] = useState('idle')
   const [loading, setLoading] = useState(true)
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const fileInputRef = useRef(null)
   const navigate = useNavigate()
 
-  // 既存プロフィールをSupabaseから読み込む
   useEffect(() => {
     const profileId = localStorage.getItem(PROFILE_ID_KEY)
     if (!profileId) { setLoading(false); return }
@@ -34,7 +37,7 @@ export default function ProfileEditor() {
       .then(({ data, error }) => {
         if (data && !error) {
           const { id, created_at, updated_at, ...fields } = data
-          setProfile(fields)
+          setProfile({ ...emptyProfile, ...fields })
         }
         setLoading(false)
       })
@@ -45,26 +48,58 @@ export default function ProfileEditor() {
     setStatus('idle')
   }
 
+  function handleAvatarClick() {
+    fileInputRef.current?.click()
+  }
+
+  function handleAvatarChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      alert('画像は5MB以下にしてください')
+      return
+    }
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
+    setStatus('idle')
+  }
+
+  async function uploadAvatar(profileId) {
+    if (!avatarFile) return profile.avatar_url || ''
+    const ext = avatarFile.name.split('.').pop().toLowerCase()
+    const path = `${profileId}/avatar.${ext}`
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type })
+    if (error) return profile.avatar_url || ''
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    return `${data.publicUrl}?t=${Date.now()}`
+  }
+
   async function saveToSupabase() {
     setStatus('saving')
     const profileId = localStorage.getItem(PROFILE_ID_KEY)
 
     if (profileId) {
-      // 既存レコードをUPDATE
+      const avatar_url = await uploadAvatar(profileId)
       const { error } = await supabase
         .from('mysns_profiles')
-        .update({ ...profile, updated_at: new Date().toISOString() })
+        .update({ ...profile, avatar_url, updated_at: new Date().toISOString() })
         .eq('id', profileId)
       if (error) { setStatus('error'); return null }
+      setProfile(prev => ({ ...prev, avatar_url }))
+      setAvatarFile(null)
       return profileId
     } else {
-      // クライアントサイドでUUIDを生成して新規INSERT
       const newId = crypto.randomUUID()
+      const avatar_url = await uploadAvatar(newId)
       const { error } = await supabase
         .from('mysns_profiles')
-        .insert({ ...profile, id: newId })
+        .insert({ ...profile, avatar_url, id: newId })
       if (error) { setStatus('error'); return null }
       localStorage.setItem(PROFILE_ID_KEY, newId)
+      setProfile(prev => ({ ...prev, avatar_url }))
+      setAvatarFile(null)
       return newId
     }
   }
@@ -72,7 +107,7 @@ export default function ProfileEditor() {
   async function handleSave(e) {
     e.preventDefault()
     const id = await saveToSupabase()
-    if (id) setStatus('saved')
+    if (id) { setStatus('saved'); setTimeout(() => setStatus('idle'), 2000) }
   }
 
   async function handleGenerateQR() {
@@ -91,6 +126,8 @@ export default function ProfileEditor() {
   }
 
   const hasProfile = !!localStorage.getItem(PROFILE_ID_KEY)
+  const displayAvatar = avatarPreview || profile.avatar_url
+  const initials = profile.name ? profile.name.trim().charAt(0) : 'M'
 
   return (
     <div className="editor-page">
@@ -105,16 +142,36 @@ export default function ProfileEditor() {
 
         <form onSubmit={handleSave} className="editor-form">
 
+          {/* Avatar Upload */}
+          <div className="avatar-upload-wrap">
+            <button type="button" className="avatar-upload-btn" onClick={handleAvatarClick}>
+              {displayAvatar ? (
+                <img src={displayAvatar} alt="avatar" className="avatar-upload-img" />
+              ) : (
+                <span className="avatar-upload-initial">{initials}</span>
+              )}
+              <span className="avatar-upload-overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <span>写真を変更</span>
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarChange}
+            />
+            {avatarFile && <p className="avatar-hint">{avatarFile.name}</p>}
+          </div>
+
           <div className="field-block">
             <label className="field-label">氏名</label>
-            <input
-              className="field-input"
-              type="text"
-              name="name"
-              value={profile.name}
-              onChange={handleChange}
-              placeholder="山田 太郎"
-            />
+            <input className="field-input" type="text" name="name"
+              value={profile.name} onChange={handleChange} placeholder="山田 太郎" />
           </div>
 
           <div className="divider-line" />
@@ -122,38 +179,20 @@ export default function ProfileEditor() {
 
           <div className="field-block">
             <label className="field-label">電話番号</label>
-            <input
-              className="field-input"
-              type="tel"
-              name="phone"
-              value={profile.phone}
-              onChange={handleChange}
-              placeholder="090-1234-5678"
-            />
+            <input className="field-input" type="tel" name="phone"
+              value={profile.phone} onChange={handleChange} placeholder="090-1234-5678" />
           </div>
 
           <div className="field-block">
             <label className="field-label">メールアドレス</label>
-            <input
-              className="field-input"
-              type="email"
-              name="email"
-              value={profile.email}
-              onChange={handleChange}
-              placeholder="hello@example.com"
-            />
+            <input className="field-input" type="email" name="email"
+              value={profile.email} onChange={handleChange} placeholder="hello@example.com" />
           </div>
 
           <div className="field-block">
             <label className="field-label">ウェブサイト</label>
-            <input
-              className="field-input"
-              type="url"
-              name="website"
-              value={profile.website}
-              onChange={handleChange}
-              placeholder="https://example.com"
-            />
+            <input className="field-input" type="url" name="website"
+              value={profile.website} onChange={handleChange} placeholder="https://example.com" />
           </div>
 
           <div className="divider-line" />
@@ -192,12 +231,8 @@ export default function ProfileEditor() {
             <button type="submit" className="btn-save" disabled={status === 'saving'}>
               {status === 'saving' ? '保存中...' : status === 'saved' ? '保存しました ✓' : '保存'}
             </button>
-            <button
-              type="button"
-              className="btn-generate"
-              onClick={handleGenerateQR}
-              disabled={!profile.name || status === 'saving'}
-            >
+            <button type="button" className="btn-generate" onClick={handleGenerateQR}
+              disabled={!profile.name || status === 'saving'}>
               {hasProfile ? 'QRコードを確認' : 'QRコードを生成'}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
