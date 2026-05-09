@@ -8,7 +8,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<ProfileEditor />} />
       <Route path="/qr" element={<QRCodePage />} />
-      <Route path="/profile/:data" element={<ProfileView />} />
+      <Route path="/profile/:id" element={<ProfileView />} />
     </Routes>
   )
 }

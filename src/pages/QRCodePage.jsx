@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
+import { supabase } from '../lib/supabase'
 
-const STORAGE_KEY = 'meishi_profile'
+const PROFILE_ID_KEY = 'mysns_profile_id'
 
 export default function QRCodePage() {
   const [profile, setProfile] = useState(null)
@@ -11,13 +12,20 @@ export default function QRCodePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) { navigate('/'); return }
-    const data = JSON.parse(stored)
-    setProfile(data)
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))))
-    const url = `${window.location.origin}${window.location.pathname}#/profile/${encoded}`
-    setProfileUrl(url)
+    const profileId = localStorage.getItem(PROFILE_ID_KEY)
+    if (!profileId) { navigate('/'); return }
+
+    supabase
+      .from('mysns_profiles')
+      .select('*')
+      .eq('id', profileId)
+      .single()
+      .then(({ data, error }) => {
+        if (!data || error) { navigate('/'); return }
+        setProfile(data)
+        const base = `${window.location.origin}${window.location.pathname}`
+        setProfileUrl(`${base}#/profile/${profileId}`)
+      })
   }, [navigate])
 
   function handleDownload() {
@@ -29,7 +37,13 @@ export default function QRCodePage() {
     a.click()
   }
 
-  if (!profile) return null
+  if (!profile) {
+    return (
+      <div className="qr-page">
+        <div style={{ color: '#71717a', textAlign: 'center', paddingTop: 80 }}>読み込み中...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="qr-page">
@@ -58,6 +72,11 @@ export default function QRCodePage() {
             />
           </div>
         </div>
+
+        <p className="qr-note">
+          このQRコードは永久に使えます。<br />
+          プロフィールを編集してもQRコードは変わりません。
+        </p>
 
         <div className="qr-actions">
           <button className="btn-dl" onClick={handleDownload}>

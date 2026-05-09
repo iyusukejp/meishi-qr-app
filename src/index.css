@@ -322,6 +322,13 @@ body {
   border-radius: 4px;
 }
 
+.qr-note {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  line-height: 1.7;
+}
+
 .qr-actions {
   width: 100%;
 }
