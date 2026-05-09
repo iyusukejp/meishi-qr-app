@@ -141,7 +141,7 @@ export default function ProfileView() {
           </div>
         )}
 
-        <p className="view-footer">MySNS で作成</p>
+        <p className="view-footer">©iyusuke</p>
       </div>
     </div>
   )
