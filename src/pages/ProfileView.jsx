@@ -29,6 +29,10 @@ const SNS_CONFIG = {
   },
 }
 
+function isSafeUrl(url) {
+  return url && /^https?:\/\//i.test(url)
+}
+
 export default function ProfileView() {
   const { id } = useParams()
   const [profile, setProfile] = useState(null)
@@ -101,7 +105,7 @@ export default function ProfileView() {
                 <svg className="contact-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
               </a>
             )}
-            {profile.website && (
+            {isSafeUrl(profile.website) && (
               <a href={profile.website} target="_blank" rel="noopener noreferrer" className="contact-row">
                 <span className="contact-icon-wrap">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>

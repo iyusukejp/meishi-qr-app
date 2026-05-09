@@ -75,13 +75,15 @@ export default function ProfileEditor() {
 
   async function saveToSupabase() {
     setStatus('saving')
+    const website = profile.website && !/^https?:\/\//i.test(profile.website) ? '' : profile.website
+    const safeProfile = { ...profile, website }
     const profileId = localStorage.getItem(PROFILE_ID_KEY)
 
     if (profileId) {
       const avatar_url = await uploadAvatar(profileId)
       const { error } = await supabase
         .from('mysns_profiles')
-        .update({ ...profile, avatar_url, updated_at: new Date().toISOString() })
+        .update({ ...safeProfile, avatar_url, updated_at: new Date().toISOString() })
         .eq('id', profileId)
       if (error) { setStatus('error'); return null }
       setProfile(prev => ({ ...prev, avatar_url }))
@@ -92,7 +94,7 @@ export default function ProfileEditor() {
       const avatar_url = await uploadAvatar(newId)
       const { error } = await supabase
         .from('mysns_profiles')
-        .insert({ ...profile, avatar_url, id: newId })
+        .insert({ ...safeProfile, avatar_url, id: newId })
       if (error) { setStatus('error'); return null }
       localStorage.setItem(PROFILE_ID_KEY, newId)
       setProfile(prev => ({ ...prev, avatar_url }))
