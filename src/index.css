@@ -162,10 +162,10 @@ body {
 
 .sns-badge svg { width: 16px; height: 16px; }
 
-.x-badge, .ig-badge, .fb-badge, .line-badge {
-  background: var(--gray-200);
-  color: var(--gray-500);
-}
+.x-badge   { background: #000; }
+.ig-badge  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+.fb-badge  { background: #1877f2; }
+.line-badge { background: #06c755; }
 
 .sns-input { flex: 1; }
 
@@ -631,10 +631,10 @@ body {
   word-break: break-all;
 }
 
-.sns-btn-x        { background: #111; border: 1px solid rgba(255,255,255,0.08); }
-.sns-btn-instagram { background: linear-gradient(135deg,rgba(240,148,51,0.25),rgba(188,24,136,0.25)); border: 1px solid rgba(188,24,136,0.2); }
-.sns-btn-facebook  { background: rgba(24,119,242,0.15); border: 1px solid rgba(24,119,242,0.2); }
-.sns-btn-line      { background: rgba(6,199,85,0.12); border: 1px solid rgba(6,199,85,0.2); }
+.sns-btn-x, .sns-btn-instagram, .sns-btn-facebook, .sns-btn-line {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
 
 .view-footer {
   font-size: 0.75rem;
