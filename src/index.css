@@ -596,6 +596,7 @@ body {
   padding: 14px 18px;
   border-radius: 14px;
   text-decoration: none;
+  color: #fff;
   transition: opacity 0.15s, transform 0.1s;
 }
 
